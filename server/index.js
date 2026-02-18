@@ -11,15 +11,18 @@ app.use(cors());
 app.use(express.json());
 
 // Database Connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB Connected'))
 .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/leads', require('./routes/leadRoutes'));
+app.use('/api/deals', require('./routes/dealRoutes'));
+app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/api/activities', require('./routes/activityRoutes'));
+app.use('/api/tickets', require('./routes/ticketRoutes'));
+app.use('/api/automations', require('./routes/automationRoutes'));
 
 app.get('/', (req, res) => {
   res.send('API is running...');
