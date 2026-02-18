@@ -42,25 +42,13 @@ exports.getActivities = async (req, res) => {
 // Get Single Activity
 exports.getActivity = async (req, res) => {
   try {
-    const activity = await Activity.findById(req.params.id)
-        .populate('assignedTo', 'name email')
-        .populate('createdBy', 'name email');
-
-    if (!activity) {
-      return res.status(404).json({ message: 'Activity not found' });
-    }
-
-    // Check Org access
-    if (activity.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    const activity = req.resource; // From middleware
+    await activity.populate('assignedTo', 'name email');
+    await activity.populate('createdBy', 'name email');
 
     res.json(activity);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Activity not found' });
-    }
     res.status(500).send('Server Error');
   }
 };
@@ -68,16 +56,7 @@ exports.getActivity = async (req, res) => {
 // Update Activity
 exports.updateActivity = async (req, res) => {
   try {
-    let activity = await Activity.findById(req.params.id);
-
-    if (!activity) {
-      return res.status(404).json({ message: 'Activity not found' });
-    }
-
-    // Check Org access
-    if (activity.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    let activity = req.resource; // From middleware
 
     activity = await Activity.findByIdAndUpdate(
       req.params.id,
@@ -95,17 +74,7 @@ exports.updateActivity = async (req, res) => {
 // Delete Activity
 exports.deleteActivity = async (req, res) => {
   try {
-    const activity = await Activity.findById(req.params.id);
-
-    if (!activity) {
-      return res.status(404).json({ message: 'Activity not found' });
-    }
-
-    // Check Org access
-    if (activity.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
+    const activity = req.resource; // From middleware
     await activity.deleteOne();
     res.json({ message: 'Activity removed' });
   } catch (err) {

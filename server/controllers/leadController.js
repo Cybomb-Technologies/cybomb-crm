@@ -42,23 +42,11 @@ exports.getLeads = async (req, res) => {
 // Get Single Lead
 exports.getLead = async (req, res) => {
   try {
-    const lead = await Lead.findById(req.params.id).populate('assignedTo', 'name email');
-    
-    if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
-    }
-
-    // Check Org access
-    if (lead.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
+    const lead = req.resource; // From middleware
+    await lead.populate('assignedTo', 'name email');
     res.json(lead);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Lead not found' });
-    }
     res.status(500).send('Server Error');
   }
 };
@@ -66,16 +54,7 @@ exports.getLead = async (req, res) => {
 // Update Lead
 exports.updateLead = async (req, res) => {
   try {
-    let lead = await Lead.findById(req.params.id);
-
-    if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
-    }
-
-    // Check Org access
-    if (lead.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    let lead = req.resource; // From middleware
 
     lead = await Lead.findByIdAndUpdate(
       req.params.id,
@@ -93,17 +72,7 @@ exports.updateLead = async (req, res) => {
 // Delete Lead
 exports.deleteLead = async (req, res) => {
   try {
-    const lead = await Lead.findById(req.params.id);
-
-    if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
-    }
-
-    // Check Org access
-    if (lead.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
+    const lead = req.resource; // From middleware
     await lead.deleteOne();
     res.json({ message: 'Lead removed' });
   } catch (err) {

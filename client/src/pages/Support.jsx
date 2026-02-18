@@ -1,21 +1,8 @@
 import Layout from '../components/Layout';
-import { Plus, Search, Filter, MoreHorizontal, Clock, AlertTriangle, AlertCircle, CheckCircle2, Pause, XCircle } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
-
-const statusConfig = {
-  open: { color: 'bg-blue-100 text-blue-700', label: 'Open' },
-  in_progress: { color: 'bg-yellow-100 text-yellow-700', label: 'In Progress' },
-  waiting: { color: 'bg-orange-100 text-orange-700', label: 'Waiting' },
-  resolved: { color: 'bg-green-100 text-green-700', label: 'Resolved' },
-  closed: { color: 'bg-gray-100 text-gray-600', label: 'Closed' },
-};
-
-const priorityConfig = {
-  low: { color: 'bg-gray-100 text-gray-600', label: 'Low' },
-  medium: { color: 'bg-blue-100 text-blue-600', label: 'Medium' },
-  high: { color: 'bg-orange-100 text-orange-700', label: 'High' },
-  urgent: { color: 'bg-red-100 text-red-700', label: 'Urgent' },
-};
+import SupportStats from '../components/support/SupportStats';
+import SupportTicketRow from '../components/support/SupportTicketRow';
 
 const dummyTickets = [
   { id: 1, subject: 'Cannot access dashboard', customer: 'Acme Corp', status: 'open', priority: 'high', assignedTo: 'Mike Ross', category: 'Bug', createdAt: '2024-04-10' },
@@ -60,24 +47,11 @@ export default function Support() {
       </div>
 
       {/* Status Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        {Object.entries(statusCounts).map(([key, count]) => (
-          <button
-            key={key}
-            onClick={() => setStatusFilter(key)}
-            className={`p-3 rounded-lg border text-center transition-all ${
-              statusFilter === key
-                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-                : 'border-gray-100 bg-white hover:border-gray-200'
-            }`}
-          >
-            <div className="text-xl font-bold text-gray-800">{count}</div>
-            <div className="text-xs text-gray-500 capitalize mt-0.5">
-              {key === 'all' ? 'All' : statusConfig[key]?.label || key}
-            </div>
-          </button>
-        ))}
-      </div>
+      <SupportStats
+        statusCounts={statusCounts}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+      />
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex gap-4">
@@ -107,32 +81,7 @@ export default function Support() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtered.map((ticket) => (
-              <tr key={ticket.id} className="hover:bg-gray-50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900 text-sm">{ticket.subject}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{ticket.category}</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{ticket.customer}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig[ticket.status]?.color || 'bg-gray-100 text-gray-600'}`}>
-                    {statusConfig[ticket.status]?.label || ticket.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityConfig[ticket.priority]?.color || 'bg-gray-100 text-gray-600'}`}>
-                    {priorityConfig[ticket.priority]?.label || ticket.priority}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{ticket.assignedTo}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(ticket.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity">
-                    <MoreHorizontal size={20} />
-                  </button>
-                </td>
-              </tr>
+              <SupportTicketRow key={ticket.id} ticket={ticket} />
             ))}
             {filtered.length === 0 && (
               <tr>

@@ -43,15 +43,7 @@ exports.getDeals = async (req, res) => {
 // Update Deal (e.g., Stage Change)
 exports.updateDeal = async (req, res) => {
   try {
-    let deal = await Deal.findById(req.params.id);
-
-    if (!deal) {
-      return res.status(404).json({ message: 'Deal not found' });
-    }
-
-    if (deal.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    let deal = req.resource; // From middleware
 
     deal = await Deal.findByIdAndUpdate(
       req.params.id,
@@ -69,16 +61,7 @@ exports.updateDeal = async (req, res) => {
 // Delete Deal
 exports.deleteDeal = async (req, res) => {
   try {
-    const deal = await Deal.findById(req.params.id);
-
-    if (!deal) {
-      return res.status(404).json({ message: 'Deal not found' });
-    }
-
-    if (deal.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
+    const deal = req.resource; // From middleware
     await deal.deleteOne();
     res.json({ message: 'Deal removed' });
   } catch (err) {
