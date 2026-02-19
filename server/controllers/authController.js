@@ -58,8 +58,8 @@ exports.registerOrganization = async (req, res) => {
     );
 
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in registerOrganization:', err);
+    res.status(500).send('Server Error: ' + err.message);
   }
 };
 
@@ -105,10 +105,15 @@ exports.login = async (req, res) => {
 // Get Current User (Auth Check)
 exports.getMe = async (req, res) => {
   try {
+    console.log('getMe called for user:', req.user.id);
     const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+        console.log('User not found in DB');
+        return res.status(404).json({ message: 'User not found' });
+    }
     res.json(user);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error in getMe:', err);
     res.status(500).send('Server Error');
   }
 };
