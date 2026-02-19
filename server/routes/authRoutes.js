@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerOrganization, login, getMe } = require('../controllers/authController');
+const { registerOrganization, login, getMe, getOrgUsers } = require('../controllers/authController');
 const { auth } = require('../middleware/authMiddleware');
 
 // @route   POST api/auth/register-org
@@ -17,5 +17,10 @@ router.post('/login', login);
 // @desc    Get current user
 // @access  Private
 router.get('/me', auth, getMe);
+
+// @route   GET api/auth/users
+// @desc    Get all users in org
+// @access  Private
+router.get('/users', auth, getOrgUsers);
 
 module.exports = router;

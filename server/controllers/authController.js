@@ -117,3 +117,14 @@ exports.getMe = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+// Get All Users in Org
+exports.getOrgUsers = async (req, res) => {
+  try {
+    const users = await User.find({ organization: req.user.organization }).select('name email role');
+    res.json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};

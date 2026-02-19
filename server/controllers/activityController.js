@@ -25,13 +25,19 @@ exports.createActivity = async (req, res) => {
   }
 };
 
-// Get All Activities (Org Scoped)
+// Get All Activities (Org Scoped) with Filtering
 exports.getActivities = async (req, res) => {
   try {
-    const activities = await Activity.find({ organization: req.user.organization })
+    const { relatedModel, relatedId } = req.query;
+    const query = { organization: req.user.organization };
+
+    if (relatedModel) query['relatedTo.onModel'] = relatedModel;
+    if (relatedId) query['relatedTo.id'] = relatedId;
+
+    const activities = await Activity.find(query)
       .populate('assignedTo', 'name email')
       .populate('createdBy', 'name email')
-      .sort({ date: 1 }); // Sort by due date ascending
+      .sort({ date: -1 }); // Sort by date descending (newest first)
     res.json(activities);
   } catch (err) {
     console.error(err.message);
