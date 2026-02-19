@@ -11,6 +11,7 @@ import Automation from './pages/Automation';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Calendar from './pages/Calendar';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/automation" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
     </Routes>
   );
 }
