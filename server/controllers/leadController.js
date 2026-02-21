@@ -1,4 +1,6 @@
 const Lead = require("../models/Lead");
+const { evaluateAndExecute } = require("../services/automationExecutionService");
+const { createLog } = require('../services/auditService');
 
 // Create Lead
 exports.createLead = async (req, res) => {
@@ -29,7 +31,17 @@ exports.createLead = async (req, res) => {
     });
 
     const lead = await newLead.save();
-    res.status(201).json(lead);
+
+    // Trigger Automations (awaiting to ensure fields update before returning)
+    await evaluateAndExecute(req.user.organization, 'Lead', 'Created', lead);
+
+    // Write Audit Log
+    await createLog(req, 'Lead', lead._id, 'CREATE', { name: lead.name, status: lead.status });
+
+    // Re-fetch the lead in case automations updated its fields
+    const updatedLead = await Lead.findById(lead._id).populate("assignedTo", "name email");
+
+    res.status(201).json(updatedLead);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -106,7 +118,16 @@ exports.updateLead = async (req, res) => {
       { new: true },
     );
 
-    res.json(lead);
+    // Trigger Automations (awaiting to ensure fields update before returning)
+    await evaluateAndExecute(req.user.organization, 'Lead', 'Updated', lead);
+
+    // Write Audit Log (we only have the new req.body here easily, but we can log that)
+    await createLog(req, 'Lead', lead._id, 'UPDATE', req.body);
+
+    // Re-fetch the lead in case automations updated its fields
+    const updatedLead = await Lead.findById(lead._id).populate("assignedTo", "name email");
+
+    res.json(updatedLead);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -118,6 +139,10 @@ exports.deleteLead = async (req, res) => {
   try {
     const lead = req.resource; // From middleware
     await lead.deleteOne();
+    
+    // Write Audit Log
+    await createLog(req, 'Lead', req.params.id, 'DELETE', { name: lead.name });
+    
     res.json({ message: 'Lead removed' });
   } catch (err) {
     console.error(err.message);

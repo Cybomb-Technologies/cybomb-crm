@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import CustomerModal from '../components/CustomerModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function Customers() {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -159,12 +161,14 @@ export default function Customers() {
                                 >
                                     <Edit size={18} />
                                 </button>
-                                <button 
-                                    onClick={() => handleDelete(customer._id)}
-                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                {['org_admin', 'sales_manager'].includes(user?.role) && (
+                                  <button 
+                                      onClick={() => handleDelete(customer._id)}
+                                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  >
+                                      <Trash2 size={18} />
+                                  </button>
+                                )}
                            </div>
                         </td>
                     </tr>

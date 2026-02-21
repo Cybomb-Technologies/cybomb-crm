@@ -128,3 +128,82 @@ exports.getOrgUsers = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+// Create a new User in the Organization
+exports.createUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password || 'Welcome123!', salt);
+
+    user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'sales_executive',
+      organization: req.user.organization,
+    });
+
+    await user.save();
+    res.status(201).json({ _id: user._id, name: user.name, email: user.email, role: user.role });
+  } catch (err) {
+    console.error('Error creating user:', err);
+    res.status(500).send('Server Error');
+  }
+};
+
+// Update User Role
+exports.updateUserRole = async (req, res) => {
+  const { role } = req.body;
+  try {
+    let user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Ensure the user belongs to the same org
+    if (user.organization.toString() !== req.user.organization.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this user' });
+    }
+    
+    user.role = role;
+    await user.save();
+    
+    res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
+  } catch (err) {
+    console.error('Error updating user role:', err);
+    res.status(500).send('Server Error');
+  }
+};
+
+// Delete User
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Ensure the user belongs to the same org
+    if (user.organization.toString() !== req.user.organization.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this user' });
+    }
+    
+    // Prevent deleting yourself
+    if (user._id.toString() === req.user.id.toString()) {
+      return res.status(400).json({ message: 'You cannot delete yourself' });
+    }
+
+    await user.deleteOne();
+    res.json({ message: 'User removed successfully' });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).send('Server Error');
+  }
+};

@@ -128,7 +128,11 @@ export default function Navbar({ hideTitle = false }) {
                     <NavIcon icon={Calendar} title="Calendar" />
                 </Link>
                 <NavIcon icon={Store} title="Marketplace" />
-                <NavIcon icon={Settings} title="Setup" />
+                {user?.role === 'org_admin' && (
+                    <Link to="/settings">
+                        <NavIcon icon={Settings} title="Setup" />
+                    </Link>
+                )}
 
                 {/* User Profile */}
                 <div className="relative group mx-2">

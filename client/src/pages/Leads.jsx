@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import LeadModal from '../components/LeadModal';
@@ -8,6 +9,7 @@ import KanbanBoard from '../components/KanbanBoard';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Download, Upload, LayoutGrid, List } from 'lucide-react';
 
 export default function Leads() {
+  const { user } = useAuth();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -194,19 +196,23 @@ export default function Leads() {
                 </button>
             </div>
 
-            <button 
-              onClick={handleExport}
-              className="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <Download size={18} />
-              Export
-            </button>
-            <label className="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer">
-              <Upload size={18} />
-              Import
-              <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
-            </label>
-            {selectedLeads.length > 0 && (
+            {['org_admin', 'sales_manager', 'marketing'].includes(user?.role) && (
+              <>
+                <button 
+                  onClick={handleExport}
+                  className="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <Download size={18} />
+                  Export
+                </button>
+                <label className="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer">
+                  <Upload size={18} />
+                  Import
+                  <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
+                </label>
+              </>
+            )}
+            {selectedLeads.length > 0 && ['org_admin', 'sales_manager'].includes(user?.role) && (
                 <button 
                   onClick={handleBulkDelete}
                   className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors border border-red-200"
@@ -358,13 +364,15 @@ export default function Leads() {
                         >
                           <Edit size={18} />
                         </button>
-                         <button 
-                          onClick={() => handleDelete(lead._id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
-                           title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                         {['org_admin', 'sales_manager'].includes(user?.role) && (
+                           <button 
+                            onClick={() => handleDelete(lead._id)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                             title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                         )}
                       </div>
                     </td>
                   </tr>

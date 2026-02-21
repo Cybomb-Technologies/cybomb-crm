@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseDelete = require('mongoose-delete');
 
 const ticketSchema = new mongoose.Schema({
   subject: { type: String, required: true },
@@ -29,5 +30,7 @@ const ticketSchema = new mongoose.Schema({
   },
   // Future: Messages array or separate Message model linked to Ticket
 }, { timestamps: true });
+
+ticketSchema.plugin(mongooseDelete, { overrideMethods: 'all', deletedAt: true });
 
 module.exports = mongoose.model('Ticket', ticketSchema);

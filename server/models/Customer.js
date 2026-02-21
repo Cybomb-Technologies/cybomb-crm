@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseDelete = require('mongoose-delete');
 
 const customerSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -20,5 +21,7 @@ const customerSchema = new mongoose.Schema({
   // We can link to Deals, Tickets via those models having customerId, or array here.
   // Keeping it simple: separate models reference Customer.
 }, { timestamps: true });
+
+customerSchema.plugin(mongooseDelete, { overrideMethods: 'all', deletedAt: true });
 
 module.exports = mongoose.model('Customer', customerSchema);
