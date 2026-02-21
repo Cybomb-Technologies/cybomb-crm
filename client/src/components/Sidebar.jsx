@@ -27,16 +27,12 @@ const mainItems = [
 
 const moduleItems = [
   { name: 'Leads', icon: Target, path: '/leads' },
-  { name: 'Contacts', icon: Users, path: '/contacts' },
-  { name: 'Accounts', icon: Building2, path: '/accounts' },
+  { name: 'Customers', icon: Users, path: '/customers' },
   { name: 'Deals', icon: Briefcase, path: '/deals' },
-  { name: 'Tasks', icon: CheckSquare, path: '/tasks' },
-  { name: 'Meetings', icon: Calendar, path: '/meetings' },
-  { name: 'Calls', icon: Phone, path: '/calls' },
-  { name: 'Campaigns', icon: Megaphone, path: '/campaigns' },
-  { name: 'Documents', icon: FileText, path: '/documents' },
-  { name: 'Visits', icon: MapPin, path: '/visits' },
-  { name: 'Projects', icon: FolderKanban, path: '/projects' },
+  { name: 'Activities', icon: CheckSquare, path: '/activities' },
+  { name: 'Support', icon: Phone, path: '/support' },
+  { name: 'Calendar', icon: Calendar, path: '/calendar' },
+  { name: 'Automation', icon: Megaphone, path: '/automation' },
 ];
 
 export default function Sidebar({ collapsed }) {

@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
+import CommandPalette from './components/CommandPalette';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import LeadDetails from './pages/LeadDetails';
@@ -11,6 +13,10 @@ import Support from './pages/Support';
 import Reports from './pages/Reports';
 import Automation from './pages/Automation';
 import Settings from './pages/Settings';
+import Users from './pages/Users';
+import AuditLogs from './pages/AuditLogs';
+import RecycleBin from './pages/RecycleBin';
+import NotificationsDemo from './pages/NotificationsDemo';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Calendar from './pages/Calendar';
@@ -54,22 +60,42 @@ function PublicRoute({ children }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+    <>
+      <CommandPalette />
+      <Routes>
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      
+      {/* Protected Routes - Accessible by all authenticated users */}
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
-      <Route path="/leads/:id" element={<ProtectedRoute><LeadDetails /></ProtectedRoute>} />
-      <Route path="/deals" element={<ProtectedRoute><Deals /></ProtectedRoute>} />
-      <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-      <Route path="/customers/:id" element={<ProtectedRoute><CustomerDetails /></ProtectedRoute>} />
-      <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-      <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-      <Route path="/automation" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-    </Routes>
+
+      {/* Role Protected Routes */}
+      <Route path="/leads" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'marketing']}><Leads /></RoleProtectedRoute>} />
+      <Route path="/leads/:id" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'marketing']}><LeadDetails /></RoleProtectedRoute>} />
+      
+      <Route path="/deals" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive']}><Deals /></RoleProtectedRoute>} />
+      
+      <Route path="/customers" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'support_agent']}><Customers /></RoleProtectedRoute>} />
+      <Route path="/customers/:id" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'support_agent']}><CustomerDetails /></RoleProtectedRoute>} />
+      
+      <Route path="/activities" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'support_agent']}><Activities /></RoleProtectedRoute>} />
+      
+      <Route path="/support" element={<RoleProtectedRoute allowedRoles={['org_admin', 'support_agent', 'sales_manager', 'sales_executive']}><Support /></RoleProtectedRoute>} />
+      
+      <Route path="/reports" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager']}><Reports /></RoleProtectedRoute>} />
+      
+      <Route path="/automation" element={<RoleProtectedRoute allowedRoles={['org_admin']}><Automation /></RoleProtectedRoute>} />
+      <Route path="/settings" element={<RoleProtectedRoute allowedRoles={['org_admin']}><Settings /></RoleProtectedRoute>} />
+      <Route path="/users" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager']}><Users /></RoleProtectedRoute>} />
+      <Route path="/audit-logs" element={<RoleProtectedRoute allowedRoles={['org_admin']}><AuditLogs /></RoleProtectedRoute>} />
+      <Route path="/recycle-bin" element={<RoleProtectedRoute allowedRoles={['org_admin']}><RecycleBin /></RoleProtectedRoute>} />
+      <Route path="/notifications-demo" element={<ProtectedRoute><NotificationsDemo /></ProtectedRoute>} />
+      
+      {/* Catch-all route to redirect unknown URLs to Dashboard */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
