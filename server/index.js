@@ -23,6 +23,11 @@ app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/tickets', require('./routes/ticketRoutes'));
 app.use('/api/automations', require('./routes/automationRoutes'));
+app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/search', require('./routes/searchRoutes'));
+app.use('/api/audit-logs', require('./routes/auditLogRoutes'));
+app.use('/api/recycle-bin', require('./routes/recycleBinRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 app.get('/', (req, res) => {
   res.send('API is running...');

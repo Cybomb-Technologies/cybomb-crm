@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseDelete = require('mongoose-delete');
 
 const leadSchema = new mongoose.Schema({
   name: {
@@ -40,5 +41,7 @@ const leadSchema = new mongoose.Schema({
     type: String
   }]
 }, { timestamps: true });
+
+leadSchema.plugin(mongooseDelete, { overrideMethods: 'all', deletedAt: true });
 
 module.exports = mongoose.model('Lead', leadSchema);

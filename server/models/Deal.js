@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseDelete = require('mongoose-delete');
 
 const dealSchema = new mongoose.Schema({
   title: {
@@ -42,5 +43,7 @@ const dealSchema = new mongoose.Schema({
     type: String,
   }
 }, { timestamps: true });
+
+dealSchema.plugin(mongooseDelete, { overrideMethods: 'all', deletedAt: true });
 
 module.exports = mongoose.model('Deal', dealSchema);

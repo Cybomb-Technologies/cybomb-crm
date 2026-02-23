@@ -1,111 +1,144 @@
-const Automation = require('../models/Automation');
+const AutomationRule = require('../models/AutomationRule');
 
-// Create Automation
-exports.createAutomation = async (req, res) => {
+// @desc    Get all automation rules for an organization
+// @route   GET /api/automations
+// @access  Private (org_admin)
+exports.getRules = async (req, res) => {
   try {
-    const { name, trigger, conditions, actions, isActive } = req.body;
-
-    const newAutomation = new Automation({
-      name,
-      trigger,
-      conditions,
-      actions,
-      isActive,
-      createdBy: req.user.id,
-      organization: req.user.organization // Enforce Org Isolation
-    });
-
-    const automation = await newAutomation.save();
-    res.status(201).json(automation);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
-
-// Get All Automations (Org Scoped)
-exports.getAutomations = async (req, res) => {
-  try {
-    const automations = await Automation.find({ organization: req.user.organization })
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
-    res.json(automations);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
-
-// Get Single Automation
-exports.getAutomation = async (req, res) => {
-  try {
-    const automation = await Automation.findById(req.params.id)
+    const rules = await AutomationRule.find({ organization: req.user.organization })
       .populate('createdBy', 'name email');
+    res.json(rules);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
 
-    if (!automation) {
-      return res.status(404).json({ message: 'Automation not found' });
+// @desc    Get single automation rule
+// @route   GET /api/automations/:id
+// @access  Private (org_admin)
+exports.getRuleById = async (req, res) => {
+  try {
+    const rule = await AutomationRule.findOne({ 
+        _id: req.params.id, 
+        organization: req.user.organization 
+    }).populate('createdBy', 'name email');
+    
+    if (!rule) {
+      return res.status(404).json({ message: 'Automation rule not found' });
     }
-
-    // Check Org access
-    if (automation.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
-    res.json(automation);
+    res.json(rule);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Automation not found' });
+      return res.status(404).json({ message: 'Automation rule not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).send('Server error');
   }
 };
 
-// Update Automation
-exports.updateAutomation = async (req, res) => {
+// @desc    Create automation rule
+// @route   POST /api/automations
+// @access  Private (org_admin)
+exports.createRule = async (req, res) => {
   try {
-    let automation = await Automation.findById(req.params.id);
+    const { name, description, isActive, trigger, conditions, actions } = req.body;
 
-    if (!automation) {
-      return res.status(404).json({ message: 'Automation not found' });
+    // Check if rule name already exists for this org
+    let existingRule = await AutomationRule.findOne({ 
+        name, 
+        organization: req.user.organization 
+    });
+    if (existingRule) {
+      return res.status(400).json({ message: 'An automation rule with this name already exists' });
     }
 
-    // Check Org access
-    if (automation.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    const newRule = new AutomationRule({
+      organization: req.user.organization,
+      name,
+      description,
+      isActive,
+      trigger,
+      conditions,
+      actions,
+      createdBy: req.user.id
+    });
 
-    automation = await Automation.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true }
-    );
-
-    res.json(automation);
+    const rule = await newRule.save();
+    res.status(201).json(rule);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Server error');
   }
 };
 
-// Delete Automation
-exports.deleteAutomation = async (req, res) => {
+// @desc    Update automation rule
+// @route   PUT /api/automations/:id
+// @access  Private (org_admin)
+exports.updateRule = async (req, res) => {
   try {
-    const automation = await Automation.findById(req.params.id);
+    const { name, description, isActive, trigger, conditions, actions } = req.body;
 
-    if (!automation) {
-      return res.status(404).json({ message: 'Automation not found' });
+    let rule = await AutomationRule.findOne({ 
+        _id: req.params.id, 
+        organization: req.user.organization 
+    });
+
+    if (!rule) {
+      return res.status(404).json({ message: 'Automation rule not found' });
     }
 
-    // Check Org access
-    if (automation.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
+    // Check name collision
+    if (name && name !== rule.name) {
+       let duplicateRule = await AutomationRule.findOne({ 
+          name, 
+          organization: req.user.organization,
+          _id: { $ne: req.params.id }
+       });
+       if (duplicateRule) {
+           return res.status(400).json({ message: 'An automation rule with this name already exists' });
+       }
     }
 
-    await automation.deleteOne();
-    res.json({ message: 'Automation removed' });
+    rule.name = name || rule.name;
+    rule.description = description !== undefined ? description : rule.description;
+    rule.isActive = isActive !== undefined ? isActive : rule.isActive;
+    rule.trigger = trigger || rule.trigger;
+    rule.conditions = conditions || rule.conditions;
+    rule.actions = actions || rule.actions;
+
+    await rule.save();
+    res.json(rule);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Automation rule not found' });
+    }
+    res.status(500).send('Server error');
+  }
+};
+
+// @desc    Delete automation rule
+// @route   DELETE /api/automations/:id
+// @access  Private (org_admin)
+exports.deleteRule = async (req, res) => {
+  try {
+    const rule = await AutomationRule.findOne({ 
+        _id: req.params.id, 
+        organization: req.user.organization 
+    });
+
+    if (!rule) {
+      return res.status(404).json({ message: 'Automation rule not found' });
+    }
+
+    await rule.deleteOne();
+    res.json({ message: 'Automation rule removed' });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Automation rule not found' });
+    }
+    res.status(500).send('Server error');
   }
 };

@@ -1,4 +1,5 @@
 const Customer = require('../models/Customer');
+const { createLog } = require('../services/auditService');
 
 // Create Customer
 exports.createCustomer = async (req, res) => {
@@ -15,6 +16,10 @@ exports.createCustomer = async (req, res) => {
     });
 
     const customer = await newCustomer.save();
+    
+    // Write Audit Log
+    await createLog(req, 'Customer', customer._id, 'CREATE', { name: customer.name, company: customer.company });
+    
     res.status(201).json(customer);
   } catch (err) {
     console.error(err.message);
@@ -78,6 +83,9 @@ exports.updateCustomer = async (req, res) => {
       { new: true }
     );
 
+    // Write Audit Log
+    await createLog(req, 'Customer', customer._id, 'UPDATE', req.body);
+
     res.json(customer);
   } catch (err) {
     console.error(err.message);
@@ -100,6 +108,10 @@ exports.deleteCustomer = async (req, res) => {
     }
 
     await customer.deleteOne();
+    
+    // Write Audit Log
+    await createLog(req, 'Customer', req.params.id, 'DELETE', { name: customer.name });
+    
     res.json({ message: 'Customer removed' });
   } catch (err) {
     console.error(err.message);

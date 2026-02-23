@@ -1,4 +1,5 @@
 const Ticket = require('../models/Ticket');
+const { createLog } = require('../services/auditService');
 
 // Create Ticket
 exports.createTicket = async (req, res) => {
@@ -17,6 +18,10 @@ exports.createTicket = async (req, res) => {
     });
 
     const ticket = await newTicket.save();
+    
+    // Write Audit Log
+    await createLog(req, 'Ticket', ticket._id, 'CREATE', { subject: ticket.subject, status: ticket.status });
+    
     res.status(201).json(ticket);
   } catch (err) {
     console.error(err.message);
@@ -84,6 +89,9 @@ exports.updateTicket = async (req, res) => {
       { new: true }
     );
 
+    // Write Audit Log
+    await createLog(req, 'Ticket', ticket._id, 'UPDATE', req.body);
+
     res.json(ticket);
   } catch (err) {
     console.error(err.message);
@@ -106,6 +114,10 @@ exports.deleteTicket = async (req, res) => {
     }
 
     await ticket.deleteOne();
+    
+    // Write Audit Log
+    await createLog(req, 'Ticket', req.params.id, 'DELETE', { subject: ticket.subject });
+    
     res.json({ message: 'Ticket removed' });
   } catch (err) {
     console.error(err.message);

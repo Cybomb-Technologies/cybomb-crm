@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    createAutomation, 
-    getAutomations, 
-    getAutomation, 
-    updateAutomation, 
-    deleteAutomation 
+    createRule, 
+    getRules, 
+    getRuleById, 
+    updateRule, 
+    deleteRule 
 } = require('../controllers/automationController');
-const { auth } = require('../middleware/authMiddleware');
+const { auth, authorize } = require('../middleware/authMiddleware');
 
 router.use(auth);
 
-router.post('/', createAutomation);
-router.get('/', getAutomations);
-router.get('/:id', getAutomation);
-router.put('/:id', updateAutomation);
-router.delete('/:id', deleteAutomation);
+router.post('/', authorize('org_admin'), createRule);
+router.get('/', authorize('org_admin'), getRules);
+router.get('/:id', authorize('org_admin'), getRuleById);
+router.put('/:id', authorize('org_admin'), updateRule);
+router.delete('/:id', authorize('org_admin'), deleteRule);
 
 module.exports = router;

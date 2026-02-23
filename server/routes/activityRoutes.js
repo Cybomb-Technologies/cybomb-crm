@@ -7,14 +7,16 @@ const {
     updateActivity, 
     deleteActivity 
 } = require('../controllers/activityController');
-const { auth } = require('../middleware/authMiddleware');
+const { auth, authorize } = require('../middleware/authMiddleware');
+const checkOrgAccess = require('../middleware/checkOrgAccess');
+const Activity = require('../models/Activity');
 
 router.use(auth);
 
-router.post('/', createActivity);
-router.get('/', getActivities);
-router.get('/:id', getActivity);
-router.put('/:id', updateActivity);
-router.delete('/:id', deleteActivity);
+router.post('/', authorize('org_admin', 'sales_manager', 'sales_executive', 'support_agent'), createActivity);
+router.get('/', authorize('org_admin', 'sales_manager', 'sales_executive', 'support_agent'), getActivities);
+router.get('/:id', checkOrgAccess(Activity), authorize('org_admin', 'sales_manager', 'sales_executive', 'support_agent'), getActivity);
+router.put('/:id', checkOrgAccess(Activity), authorize('org_admin', 'sales_manager', 'sales_executive', 'support_agent'), updateActivity);
+router.delete('/:id', checkOrgAccess(Activity), authorize('org_admin', 'sales_manager'), deleteActivity);
 
 module.exports = router;

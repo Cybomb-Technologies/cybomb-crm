@@ -1,4 +1,6 @@
 const Deal = require('../models/Deal');
+const { evaluateAndExecute } = require('../services/automationExecutionService');
+const { createLog } = require('../services/auditService');
 
 // Create Deal
 exports.createDeal = async (req, res) => {
@@ -19,7 +21,18 @@ exports.createDeal = async (req, res) => {
     });
 
     const deal = await newDeal.save();
-    res.status(201).json(deal);
+
+    // Trigger Automations (awaiting to ensure fields update before returning)
+    await evaluateAndExecute(req.user.organization, 'Deal', 'Created', deal);
+    
+    // Write Audit Log
+    await createLog(req, 'Deal', deal._id, 'CREATE', { title: deal.title, value: deal.value, stage: deal.stage });
+
+    const updatedDeal = await Deal.findById(deal._id)
+      .populate('assignedTo', 'name email')
+      .populate('contactPerson', 'name company');
+
+    res.status(201).json(updatedDeal);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -43,15 +56,7 @@ exports.getDeals = async (req, res) => {
 // Update Deal (e.g., Stage Change)
 exports.updateDeal = async (req, res) => {
   try {
-    let deal = await Deal.findById(req.params.id);
-
-    if (!deal) {
-      return res.status(404).json({ message: 'Deal not found' });
-    }
-
-    if (deal.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    let deal = req.resource; // From middleware
 
     deal = await Deal.findByIdAndUpdate(
       req.params.id,
@@ -59,7 +64,17 @@ exports.updateDeal = async (req, res) => {
       { new: true }
     );
 
-    res.json(deal);
+    // Trigger Automations (awaiting to ensure fields update before returning)
+    await evaluateAndExecute(req.user.organization, 'Deal', 'Updated', deal);
+
+    // Write Audit Log
+    await createLog(req, 'Deal', deal._id, 'UPDATE', req.body);
+
+    const updatedDeal = await Deal.findById(deal._id)
+      .populate('assignedTo', 'name email')
+      .populate('contactPerson', 'name company');
+
+    res.json(updatedDeal);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -69,17 +84,12 @@ exports.updateDeal = async (req, res) => {
 // Delete Deal
 exports.deleteDeal = async (req, res) => {
   try {
-    const deal = await Deal.findById(req.params.id);
-
-    if (!deal) {
-      return res.status(404).json({ message: 'Deal not found' });
-    }
-
-    if (deal.organization.toString() !== req.user.organization) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
+    const deal = req.resource; // From middleware
     await deal.deleteOne();
+    
+    // Write Audit Log
+    await createLog(req, 'Deal', req.params.id, 'DELETE', { title: deal.title });
+    
     res.json({ message: 'Deal removed' });
   } catch (err) {
     console.error(err.message);
