@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import {
     Search,
     Plus,
@@ -7,13 +7,17 @@ import {
     Store,
     Settings,
     LayoutGrid,
-    X
+    X,
+    ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar({ hideTitle = false }) {
     const location = useLocation();
+    const navigate = useNavigate();
     const { user } = useAuth();
+
+    const isSettings = location.pathname === '/settings';
     const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
     const quickCreateRef = useRef(null);
 
@@ -30,8 +34,8 @@ export default function Navbar({ hideTitle = false }) {
     };
 
     const NavIcon = ({ icon: Icon, title }) => (
-        <div className="relative group">
-            <button className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative">
+        <div className="relative group cursor-pointer w-auto h-auto flex items-center justify-center">
+            <button className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative cursor-pointer">
                 <Icon size={20} />
             </button>
             {/* Tooltip */}
@@ -49,12 +53,24 @@ export default function Navbar({ hideTitle = false }) {
     return (
         <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
 
-            {/* Left: Page Title */}
-            {!hideTitle && (
-                <h1 className="text-xl font-semibold text-slate-800">
-                    {getPageTitle()}
-                </h1>
-            )}
+            {/* Left: Page Title or Back Button */}
+            {/* Left: Page Title or Back Button */}
+            <div className="flex items-center gap-4">
+                {isSettings && (
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition-colors"
+                        title="Go Back"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                )}
+                {!hideTitle && !isSettings && (
+                    <h1 className="text-xl font-semibold text-slate-800">
+                        {getPageTitle()}
+                    </h1>
+                )}
+            </div>
             {hideTitle && <div></div>} {/* Spacer to keep flex justification working if needed, though justify-between handles single item too */}
 
             {/* Right: Actions */}
@@ -128,17 +144,17 @@ export default function Navbar({ hideTitle = false }) {
                     <NavIcon icon={Calendar} title="Calendar" />
                 </Link>
                 <NavIcon icon={Store} title="Marketplace" />
-                {user?.role === 'org_admin' && (
-                    <Link to="/settings">
-                        <NavIcon icon={Settings} title="Setup" />
-                    </Link>
-                )}
+                <Link to="/settings">
+                    <NavIcon icon={Settings} title="Settings" />
+                </Link>
 
                 {/* User Profile */}
                 <div className="relative group mx-2">
-                    <button className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm border border-indigo-200 hover:ring-2 hover:ring-indigo-100 transition-all overflow-hidden">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                    </button>
+                    <Link to="/profile">
+                        <button className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm border border-indigo-200 hover:ring-2 hover:ring-indigo-100 transition-all overflow-hidden">
+                            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        </button>
+                    </Link>
                     {/* Tooltip */}
                     <div className="absolute top-full mt-2 right-0 px-3 py-1.5 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none shadow-lg">
                         Profile

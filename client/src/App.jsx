@@ -20,6 +20,7 @@ import NotificationsDemo from './pages/NotificationsDemo';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Calendar from './pages/Calendar';
+import Profile from './pages/Profile';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -69,6 +70,8 @@ function AppRoutes() {
       {/* Protected Routes - Accessible by all authenticated users */}
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    </Routes>
 
       {/* Role Protected Routes */}
       <Route path="/leads" element={<RoleProtectedRoute allowedRoles={['org_admin', 'sales_manager', 'sales_executive', 'marketing']}><Leads /></RoleProtectedRoute>} />
