@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/reportController');
-const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { auth, authorize } = require('../middleware/authMiddleware');
 
 // Protect all report routes with auth and RBAC
 router.use(auth);
